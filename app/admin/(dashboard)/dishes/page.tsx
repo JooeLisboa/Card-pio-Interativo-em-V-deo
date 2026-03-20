@@ -95,7 +95,7 @@ export default async function AdminDishesPage({
             <a
               href={qrCode}
               download={`qr-${dish.slug}.png`}
-              className="mt-3 inline-block text-sm font-semibold text-[var(--primary)]"
+              className="mt-3 inline-block text-sm font-semibold text-(--primary)"
             >
               Baixar QR
             </a>
