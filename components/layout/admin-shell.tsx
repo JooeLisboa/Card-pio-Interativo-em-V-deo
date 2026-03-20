@@ -21,21 +21,21 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-stone-100/80 py-6">
+    <div className="min-h-screen bg-stone-100/80 py-4 sm:py-6">
       <div className="container-shell grid gap-6 lg:grid-cols-[260px_1fr]">
-        <aside className="surface flex flex-col gap-6 p-5">
+        <aside className="surface flex flex-col gap-6 p-4 sm:p-5">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-stone-500">Admin</p>
             <h1 className="mt-2 text-2xl font-bold text-stone-900">{restaurantName}</h1>
           </div>
-          <nav className="grid gap-2">
+          <nav className="flex gap-2 overflow-x-auto lg:grid">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
+                  className="flex min-w-fit items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -44,7 +44,7 @@ export function AdminShell({
             })}
           </nav>
           <form action={logoutAction} className="mt-auto">
-            <Button variant="outline" className="w-full justify-center gap-2">
+            <Button variant="outline" className="min-h-12 w-full justify-center gap-2">
               <LogOut className="h-4 w-4" />
               Sair
             </Button>

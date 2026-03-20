@@ -6,17 +6,36 @@ import { requireAdmin } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { categorySchema, dishSchema, settingsSchema, tableSchema } from "@/lib/validations/admin";
 
+export type ActionMessage = { error?: string; success?: string };
+
 function normalizeError(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
       return "Já existe um registro com este identificador.";
+    }
+
+    if (error.code === "P2003") {
+      return "Não foi possível concluir a operação porque este item possui dependências relacionadas.";
     }
   }
 
   return error instanceof Error ? error.message : "Não foi possível salvar.";
 }
 
-export async function saveCategoryAction(_prevState: { error?: string; success?: string } | undefined, formData: FormData) {
+function revalidateAdminPaths(restaurantSlug?: string | null) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/dishes");
+  revalidatePath("/admin/tables");
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/analytics");
+
+  if (restaurantSlug) {
+    revalidatePath(`/menu/${restaurantSlug}`);
+  }
+}
+
+export async function saveCategoryAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = categorySchema.safeParse({
     id: formData.get("id"),
@@ -31,14 +50,18 @@ export async function saveCategoryAction(_prevState: { error?: string; success?:
 
   try {
     if (parsed.data.id) {
-      await prisma.category.update({
-        where: { id: parsed.data.id },
+      const result = await prisma.category.updateMany({
+        where: { id: parsed.data.id, restaurantId: user.restaurantId },
         data: {
           name: parsed.data.name,
           slug: parsed.data.slug,
           sortOrder: parsed.data.sortOrder
         }
       });
+
+      if (!result.count) {
+        return { error: "Categoria não encontrada para este restaurante." };
+      }
     } else {
       await prisma.category.create({
         data: {
@@ -50,22 +73,29 @@ export async function saveCategoryAction(_prevState: { error?: string; success?:
       });
     }
 
-    revalidatePath("/admin/categories");
-    revalidatePath("/admin");
+    revalidateAdminPaths(user.restaurant?.slug);
     return { success: "Categoria salva com sucesso." };
   } catch (error) {
     return { error: normalizeError(error) };
   }
 }
 
-export async function deleteCategoryAction(id: string) {
-  await requireAdmin();
-  await prisma.category.delete({ where: { id } });
-  revalidatePath("/admin/categories");
-  revalidatePath("/admin");
+export async function deleteCategoryAction(id: string): Promise<ActionMessage> {
+  const user = await requireAdmin();
+
+  const result = await prisma.category.deleteMany({
+    where: { id, restaurantId: user.restaurantId ?? undefined }
+  });
+
+  if (!result.count) {
+    return { error: "Categoria não encontrada para este restaurante." };
+  }
+
+  revalidateAdminPaths(user.restaurant?.slug);
+  return { success: "Categoria removida com sucesso." };
 }
 
-export async function saveDishAction(_prevState: { error?: string; success?: string } | undefined, formData: FormData) {
+export async function saveDishAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = dishSchema.safeParse({
     id: formData.get("id"),
@@ -85,6 +115,18 @@ export async function saveDishAction(_prevState: { error?: string; success?: str
     return { error: parsed.success ? "Restaurante não encontrado." : parsed.error.issues[0]?.message };
   }
 
+  const category = await prisma.category.findFirst({
+    where: {
+      id: parsed.data.categoryId,
+      restaurantId: user.restaurantId
+    },
+    select: { id: true }
+  });
+
+  if (!category) {
+    return { error: "Selecione uma categoria válida deste restaurante." };
+  }
+
   const data = {
     categoryId: parsed.data.categoryId,
     name: parsed.data.name,
@@ -100,29 +142,41 @@ export async function saveDishAction(_prevState: { error?: string; success?: str
 
   try {
     if (parsed.data.id) {
-      await prisma.dish.update({ where: { id: parsed.data.id }, data });
+      const result = await prisma.dish.updateMany({
+        where: { id: parsed.data.id, restaurantId: user.restaurantId },
+        data
+      });
+
+      if (!result.count) {
+        return { error: "Prato não encontrado para este restaurante." };
+      }
     } else {
       await prisma.dish.create({ data: { ...data, restaurantId: user.restaurantId } });
     }
 
-    revalidatePath("/admin/dishes");
-    revalidatePath("/admin");
-    revalidatePath(`/menu/${user.restaurant?.slug}`);
+    revalidateAdminPaths(user.restaurant?.slug);
     return { success: "Prato salvo com sucesso." };
   } catch (error) {
     return { error: normalizeError(error) };
   }
 }
 
-export async function deleteDishAction(id: string) {
+export async function deleteDishAction(id: string): Promise<ActionMessage> {
   const user = await requireAdmin();
-  await prisma.dish.delete({ where: { id } });
-  revalidatePath("/admin/dishes");
-  revalidatePath("/admin");
-  revalidatePath(`/menu/${user.restaurant?.slug}`);
+
+  const result = await prisma.dish.deleteMany({
+    where: { id, restaurantId: user.restaurantId ?? undefined }
+  });
+
+  if (!result.count) {
+    return { error: "Prato não encontrado para este restaurante." };
+  }
+
+  revalidateAdminPaths(user.restaurant?.slug);
+  return { success: "Prato removido com sucesso." };
 }
 
-export async function saveTableAction(_prevState: { error?: string; success?: string } | undefined, formData: FormData) {
+export async function saveTableAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = tableSchema.safeParse({
     id: formData.get("id"),
@@ -136,10 +190,14 @@ export async function saveTableAction(_prevState: { error?: string; success?: st
 
   try {
     if (parsed.data.id) {
-      await prisma.table.update({
-        where: { id: parsed.data.id },
+      const result = await prisma.table.updateMany({
+        where: { id: parsed.data.id, restaurantId: user.restaurantId },
         data: { number: parsed.data.number, code: parsed.data.code }
       });
+
+      if (!result.count) {
+        return { error: "Mesa não encontrada para este restaurante." };
+      }
     } else {
       await prisma.table.create({
         data: {
@@ -150,22 +208,29 @@ export async function saveTableAction(_prevState: { error?: string; success?: st
       });
     }
 
-    revalidatePath("/admin/tables");
-    revalidatePath("/admin");
+    revalidateAdminPaths(user.restaurant?.slug);
     return { success: "Mesa salva com sucesso." };
   } catch (error) {
     return { error: normalizeError(error) };
   }
 }
 
-export async function deleteTableAction(id: string) {
-  await requireAdmin();
-  await prisma.table.delete({ where: { id } });
-  revalidatePath("/admin/tables");
-  revalidatePath("/admin");
+export async function deleteTableAction(id: string): Promise<ActionMessage> {
+  const user = await requireAdmin();
+
+  const result = await prisma.table.deleteMany({
+    where: { id, restaurantId: user.restaurantId ?? undefined }
+  });
+
+  if (!result.count) {
+    return { error: "Mesa não encontrada para este restaurante." };
+  }
+
+  revalidateAdminPaths(user.restaurant?.slug);
+  return { success: "Mesa removida com sucesso." };
 }
 
-export async function saveSettingsAction(_prevState: { error?: string; success?: string } | undefined, formData: FormData) {
+export async function saveSettingsAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = settingsSchema.safeParse({
     name: formData.get("name"),
@@ -187,9 +252,12 @@ export async function saveSettingsAction(_prevState: { error?: string; success?:
       data: parsed.data
     });
 
-    revalidatePath("/admin/settings");
-    revalidatePath("/admin");
-    revalidatePath(`/menu/${parsed.data.slug}`);
+    revalidateAdminPaths(user.restaurant?.slug);
+
+    if (user.restaurant?.slug && user.restaurant.slug !== parsed.data.slug) {
+      revalidatePath(`/menu/${parsed.data.slug}`);
+    }
+
     return { success: "Configurações atualizadas." };
   } catch (error) {
     return { error: normalizeError(error) };

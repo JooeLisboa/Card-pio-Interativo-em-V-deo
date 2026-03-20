@@ -31,7 +31,7 @@ Isso garante:
 - Zod
 
 ### Backend / fullstack
-- Next.js fullstack com Server Components e Server Actions
+- Next.js fullstack com Server Components, Route Handlers e Server Actions
 - Prisma ORM
 - PostgreSQL
 
@@ -44,10 +44,10 @@ Isso garante:
 
 ## 4. Arquitetura do projeto
 A aplicação foi organizada por responsabilidade e domínio:
-- `app/`: rotas públicas e administrativas;
+- `app/`: rotas públicas, administrativas e APIs internas;
 - `components/`: UI compartilhada e blocos de tela;
 - `actions/`: server actions do painel admin;
-- `lib/`: autenticação, Prisma, queries e utilidades;
+- `lib/`: autenticação, Prisma, queries, utilidades e validações;
 - `prisma/`: schema e seed;
 - `types/`: extensões de tipos.
 
@@ -56,13 +56,13 @@ Princípios adotados:
 - validação com Zod;
 - separação entre UI, regras e persistência;
 - preferência por Server Components sempre que possível;
-- client components apenas onde havia ganho real de UX (formulários).
+- client components apenas onde havia ganho real de UX (formulários e tracking de visualização).
 
 ## 5. Estrutura de pastas
 ```bash
 app/
   admin/
-  api/auth/[...nextauth]/
+  api/
   menu/[restaurantSlug]/
 components/
   admin/
@@ -110,18 +110,18 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 - `AUTH_SECRET`: segredo de sessão do Auth.js.
 - `NEXT_PUBLIC_APP_URL`: URL base usada na geração dos QR Codes.
 
-## 8. Como rodar migrações Prisma
-Para ambiente local:
+## 8. Banco, migrações e seed
+### Migrações locais
 ```bash
 npm run db:migrate
 ```
 
-Para sincronizar rapidamente em protótipos:
+### Sincronização rápida em protótipos
 ```bash
 npm run db:push
 ```
 
-## 9. Como criar seed inicial
+### Seed inicial
 ```bash
 npm run db:seed
 ```
@@ -133,18 +133,19 @@ A seed cria:
 - 4 mesas;
 - 1 usuário admin demo.
 
-## 10. Como acessar o painel admin
-Após rodar o seed:
+### Credenciais demo
 - URL: `/admin/login`
 - E-mail: `admin@sabordacasa.demo`
 - Senha: `admin123`
 
-## 11. Rotas principais
+## 9. Rotas principais
 ### Públicas
 - `/`
 - `/menu/[restaurantSlug]`
 - `/menu/[restaurantSlug]/dish/[dishSlug]`
-- `/menu/[restaurantSlug]?table=mesa-12`
+- `/menu/[restaurantSlug]?table=mesa-10`
+
+> Observação: o parâmetro `table` agora usa preferencialmente o **código da mesa** (`mesa-10`). O sistema ainda aceita números legados (`?table=10`) e os normaliza internamente.
 
 ### Admin
 - `/admin/login`
@@ -155,7 +156,15 @@ Após rodar o seed:
 - `/admin/settings`
 - `/admin/analytics`
 
-## 12. Modelagem resumida do banco
+## 10. Comportamentos importantes da versão atual
+- **Rotas admin protegidas** por middleware + checagem de sessão/role no servidor.
+- **Server actions escopadas por restaurante**, evitando edição/remoção cruzada por ID.
+- **QR de mesa** preserva o código da mesa no cardápio público e no CTA de WhatsApp.
+- **Analytics de prato** é registrado por sessão do navegador, reduzindo duplicidade indevida em reloads simples.
+- **Extração de vídeo do YouTube** aceita formatos `watch`, `youtu.be`, `shorts`, `embed`, `live` e também ID puro.
+- **Estados vazios e loading** foram adicionados para melhorar a percepção de estabilidade durante demos.
+
+## 11. Modelagem resumida do banco
 ### `Restaurant`
 Dados institucionais e identidade do restaurante.
 
@@ -174,37 +183,35 @@ Evento simples para analytics por visualização.
 ### `User`
 Usuários do painel admin com papel e vínculo opcional com restaurante.
 
-## 13. Decisões arquiteturais
+## 12. Decisões arquiteturais
 - **Vídeo opcional**: a página do prato não depende do vídeo para comunicar valor.
 - **QR interno**: nenhum QR aponta diretamente para o YouTube; todos levam para páginas internas.
 - **Sem upload complexo no MVP**: uso de URLs de imagem para reduzir complexidade inicial.
 - **Analytics interno**: sem serviços externos na primeira versão.
 - **Estrutura preparada para multi-tenant**: as entidades principais já possuem vínculo com `restaurantId`.
 
-## 14. Melhorias futuras
-- upload de imagem com storage externo;
-- pedidos com carrinho;
-- checkout e pagamento;
-- analytics por período;
-- gestão de múltiplos restaurantes por instância;
-- customização avançada de tema;
-- suporte a combos, adicionais e observações.
+## 13. Checklist de validação recomendado antes da demo
+Execute localmente:
+```bash
+npm install
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run lint
+npx tsc --noEmit
+npm run build
+```
 
-## 15. Evolução para SaaS multi-tenant
-A base já foi desenhada para suportar expansão futura:
-- `restaurantId` nas entidades centrais;
-- usuários relacionados a restaurante;
-- slugs públicos por restaurante;
-- painel com escopo de restaurante.
+Valide manualmente:
+- login admin;
+- criação/edição/remoção de categoria, prato e mesa;
+- QR geral, QR por prato e QR por mesa;
+- preservação de mesa na URL e no WhatsApp;
+- visualização única por sessão no analytics;
+- pratos com e sem vídeo;
+- navegação mobile no cardápio e no painel.
 
-Para virar SaaS, os próximos passos naturais seriam:
-- onboarding por restaurante;
-- billing/assinaturas;
-- roles mais detalhadas;
-- isolamento mais robusto por tenant;
-- domínio customizado por cliente.
-
-## 16. Troubleshooting básico
+## 14. Troubleshooting básico
 ### Erro de conexão com banco
 Verifique se o PostgreSQL está ativo e se `DATABASE_URL` está correta.
 
@@ -223,8 +230,8 @@ Confirme o valor de `NEXT_PUBLIC_APP_URL`.
 ### Login não funciona
 Garanta que o seed foi executado e que o `AUTH_SECRET` foi definido.
 
-## 17. Observações do MVP
+## 15. Observações do MVP
 - Busca pública simples está disponível no cardápio.
-- O contador de visualizações é incrementado na página individual do prato.
-- O botão de WhatsApp já preserva a referência de mesa quando acessado via QR de mesa.
+- O botão de WhatsApp preserva a referência de mesa quando acessado via QR de mesa.
 - Os formulários usam React Hook Form + Zod para validação de entrada.
+- O admin foi refinado para uma demo comercial com melhor responsividade e estados vazios mais claros.

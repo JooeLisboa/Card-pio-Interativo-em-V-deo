@@ -15,12 +15,18 @@ type FormValues = { email: string; password: string };
 export function LoginForm() {
   const [message, setMessage] = useState<{ error?: string }>({});
   const [isPending, startTransition] = useTransition();
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<FormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "admin@sabordacasa.demo", password: "admin123" }
   });
 
   const onSubmit = handleSubmit((values) => {
+    setMessage({});
+
     startTransition(async () => {
       const formData = new FormData();
       formData.append("email", values.email);
@@ -35,15 +41,15 @@ export function LoginForm() {
       <FormMessage error={message.error} />
       <div>
         <Label htmlFor="email">E-mail</Label>
-        <Input id="email" type="email" {...register("email")} />
+        <Input id="email" type="email" autoComplete="email" {...register("email")} />
         {errors.email ? <p className="mt-1 text-xs text-red-600">{errors.email.message}</p> : null}
       </div>
       <div>
         <Label htmlFor="password">Senha</Label>
-        <Input id="password" type="password" {...register("password")} />
+        <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
         {errors.password ? <p className="mt-1 text-xs text-red-600">{errors.password.message}</p> : null}
       </div>
-      <Button type="submit" disabled={isPending}>{isPending ? "Entrando..." : "Acessar painel"}</Button>
+      <Button type="submit" disabled={isPending} className="min-h-12">{isPending ? "Entrando..." : "Acessar painel"}</Button>
       <div className="rounded-2xl bg-stone-50 p-4 text-sm text-stone-600">
         Demo: <strong>admin@sabordacasa.demo</strong> / <strong>admin123</strong>
       </div>
