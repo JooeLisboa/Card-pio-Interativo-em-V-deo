@@ -61,7 +61,12 @@ export default async function AdminCategoriesPage({
                           <Button asChild variant="outline">
                             <Link href={`/admin/categories?edit=${category.id}`}>Editar</Link>
                           </Button>
-                          <form action={deleteCategoryAction.bind(null, category.id)}>
+                          <form
+                            action={async () => {
+                              "use server";
+                              await deleteCategoryAction(category.id);
+                            }}
+                          >
                             <Button variant="danger">Excluir</Button>
                           </form>
                         </div>

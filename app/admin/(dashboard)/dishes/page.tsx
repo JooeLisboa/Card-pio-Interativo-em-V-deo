@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { deleteDishAction } from "@/actions/admin";
 import { DishForm } from "@/components/admin/dish-form";
+import { DishQrDialog } from "@/components/admin/dish-qr-dialog";
 import { SectionHeader } from "@/components/admin/section-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,76 +32,91 @@ export default async function AdminDishesPage({
       const qrCode = await getQrCodeDataUrl(url);
 
       return (
-        <Card
-          key={dish.id}
-          className="grid gap-4 overflow-hidden p-4 sm:p-5 xl:grid-cols-[112px_minmax(0,1fr)_176px] xl:items-center"
-        >
-          <div className="grid gap-4 sm:grid-cols-[96px_minmax(0,1fr)] sm:items-start xl:contents">
-            <div className="relative aspect-square w-full max-w-24 overflow-hidden rounded-2xl bg-stone-100 sm:max-w-none xl:w-28">
+        <Card key={dish.id} className="overflow-hidden p-4 sm:p-5">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="relative h-40 w-full overflow-hidden rounded-2xl bg-stone-100 sm:h-28 sm:w-28 sm:flex-none">
               {dish.imageUrl ? (
                 <Image
                   src={dish.imageUrl}
                   alt={dish.name}
                   fill
                   className="object-cover"
-                  sizes="(min-width: 1280px) 112px, 96px"
+                  sizes="(min-width: 640px) 112px, 100vw"
                 />
-              ) : null}
+              ) : (
+                <div className="flex h-full items-center justify-center bg-stone-100 text-sm font-semibold text-stone-400">
+                  Sem foto
+                </div>
+              )}
             </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-lg font-bold text-stone-950">{dish.name}</h3>
-                <Badge
-                  className={
-                    dish.isAvailable
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-red-100 text-red-700"
-                  }
-                >
-                  {dish.isAvailable ? "Disponível" : "Indisponível"}
-                </Badge>
-                {dish.isFeatured ? (
-                  <Badge className="bg-amber-100 text-amber-700">Promocional</Badge>
-                ) : null}
-              </div>
-              <p className="mt-2 text-sm text-stone-500">
-                {dish.category.name} • {formatCurrency(Number(dish.price))}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                {dish.description}
-              </p>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link href={`/admin/dishes?edit=${dish.id}`}>Editar</Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <a href={url} target="_blank" rel="noreferrer">
-                    Abrir página
-                  </a>
-                </Button>
-                <form action={deleteDishAction.bind(null, dish.id)} className="w-full sm:w-auto">
-                  <Button variant="danger" className="w-full sm:w-auto">
-                    Excluir
+
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 flex-col gap-3">
+                <div className="flex flex-wrap items-start gap-2">
+                  <h3 className="min-w-0 flex-1 text-lg font-bold leading-tight text-stone-950 sm:text-xl">
+                    {dish.name}
+                  </h3>
+                  <Badge
+                    className={
+                      dish.isAvailable
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-red-100 text-red-700"
+                    }
+                  >
+                    {dish.isAvailable ? "Disponível" : "Indisponível"}
+                  </Badge>
+                  {dish.isFeatured ? (
+                    <Badge className="bg-amber-100 text-amber-700">
+                      Promocional
+                    </Badge>
+                  ) : null}
+                </div>
+
+                <p className="text-sm font-medium text-stone-500">
+                  {dish.category.name} • {formatCurrency(Number(dish.price))}
+                </p>
+
+                <p className="line-clamp-3 text-sm leading-6 text-stone-600">
+                  {dish.description}
+                </p>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="min-h-11 flex-1 sm:flex-none"
+                  >
+                    <Link href={`/admin/dishes?edit=${dish.id}`}>Editar</Link>
                   </Button>
-                </form>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="min-h-11 flex-1 sm:flex-none"
+                  >
+                    <a href={url} target="_blank" rel="noreferrer">
+                      Abrir página
+                    </a>
+                  </Button>
+                  <DishQrDialog
+                    dishName={dish.name}
+                    dishSlug={dish.slug}
+                    dishUrl={url}
+                    qrCode={qrCode}
+                  />
+                  <form
+                    action={async () => {
+                      "use server";
+                      await deleteDishAction(dish.id);
+                    }}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Button variant="danger" className="min-h-11 w-full">
+                      Excluir
+                    </Button>
+                  </form>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="rounded-3xl bg-stone-50 p-4 text-center xl:justify-self-end">
-            <Image
-              src={qrCode}
-              alt={`QR do prato ${dish.name}`}
-              width={160}
-              height={160}
-              className="mx-auto rounded-2xl"
-            />
-            <a
-              href={qrCode}
-              download={`qr-${dish.slug}.png`}
-              className="mt-3 inline-block text-sm font-semibold text-(--primary)"
-            >
-              Baixar QR
-            </a>
           </div>
         </Card>
       );
@@ -111,7 +127,7 @@ export default async function AdminDishesPage({
     <div className="space-y-6">
       <SectionHeader
         title="Pratos"
-        description="Cadastre pratos de forma rápida no mobile e acompanhe a listagem completa com QR individual."
+        description="Cadastre pratos de forma rápida no mobile e acompanhe a listagem completa com QR individual sob demanda."
       />
 
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)] 2xl:items-start">
@@ -147,7 +163,7 @@ export default async function AdminDishesPage({
           ) : (
             <Card className="p-6 text-sm text-stone-500">
               Nenhum prato cadastrado ainda. Crie o primeiro prato e valide seu
-              QR individual.
+              QR individual quando precisar compartilhar o link público.
             </Card>
           )}
         </div>

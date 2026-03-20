@@ -41,7 +41,12 @@ export default async function AdminTablesPage({
               <Button asChild variant="outline">
                 <Link href={`/admin/tables?edit=${table.id}`}>Editar</Link>
               </Button>
-              <form action={deleteTableAction.bind(null, table.id)}>
+              <form
+                action={async () => {
+                  "use server";
+                  await deleteTableAction(table.id);
+                }}
+              >
                 <Button variant="danger">Excluir</Button>
               </form>
             </div>
