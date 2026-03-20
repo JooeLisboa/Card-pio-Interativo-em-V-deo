@@ -41,24 +41,50 @@ export async function getDishBySlug(params: { restaurantSlug: string; dishSlug: 
   });
 }
 
-export async function incrementDishView(dishId: string, tableNumber?: string | null) {
-  let tableId: string | null = null;
+export async function resolveTableContext(params: {
+  restaurantId: string;
+  tableParam?: string | null;
+}) {
+  const tableParam = params.tableParam?.trim();
 
-  if (tableNumber && /^\d+$/.test(tableNumber)) {
-    const dish = await prisma.dish.findUnique({ where: { id: dishId }, select: { restaurantId: true } });
-    const table = dish ? await prisma.table.findFirst({ where: { restaurantId: dish.restaurantId, number: Number(tableNumber) } }) : null;
-    tableId = table?.id ?? null;
+  if (!tableParam) {
+    return null;
   }
 
+  const numericTable = /^\d+$/.test(tableParam)
+    ? await prisma.table.findFirst({
+        where: {
+          restaurantId: params.restaurantId,
+          number: Number(tableParam)
+        }
+      })
+    : null;
+
+  if (numericTable) {
+    return numericTable;
+  }
+
+  return prisma.table.findFirst({
+    where: {
+      restaurantId: params.restaurantId,
+      code: tableParam
+    }
+  });
+}
+
+export async function incrementDishView(params: {
+  dishId: string;
+  tableId?: string | null;
+}) {
   await prisma.$transaction([
     prisma.dish.update({
-      where: { id: dishId },
+      where: { id: params.dishId },
       data: { viewsCount: { increment: 1 } }
     }),
     prisma.dishViewEvent.create({
       data: {
-        dishId,
-        tableId
+        dishId: params.dishId,
+        tableId: params.tableId ?? null
       }
     })
   ]);
@@ -93,6 +119,7 @@ export async function getQrCodeDataUrl(value: string) {
   return QRCode.toDataURL(value, {
     width: 256,
     margin: 2,
+    errorCorrectionLevel: "H",
     color: {
       dark: "#1d1a17",
       light: "#ffffff"

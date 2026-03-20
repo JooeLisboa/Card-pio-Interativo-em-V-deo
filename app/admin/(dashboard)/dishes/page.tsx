@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { deleteDishAction } from "@/actions/admin";
 import { DishForm } from "@/components/admin/dish-form";
 import { SectionHeader } from "@/components/admin/section-header";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getAdminDashboardData, getQrCodeDataUrl } from "@/lib/data";
-import { formatCurrency } from "@/lib/utils";
+import { buildMenuUrl, formatCurrency } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth/session";
 
 export default async function AdminDishesPage({
@@ -22,13 +23,17 @@ export default async function AdminDishesPage({
 
   const dishCards = await Promise.all(
     data.dishes.map(async (dish) => {
-      const url = `${baseUrl}/menu/${data.restaurant?.slug}/dish/${dish.slug}`;
+      const publicPath = buildMenuUrl({
+        restaurantSlug: data.restaurant?.slug ?? "",
+        dishSlug: dish.slug
+      });
+      const url = `${baseUrl}${publicPath}`;
       const qrCode = await getQrCodeDataUrl(url);
 
       return (
         <Card key={dish.id} className="grid gap-4 p-5 md:grid-cols-[120px_1fr_200px] md:items-center">
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100">
-            {dish.imageUrl ? <Image src={dish.imageUrl} alt={dish.name} fill className="object-cover" /> : null}
+            {dish.imageUrl ? <Image src={dish.imageUrl} alt={dish.name} fill className="object-cover" sizes="120px" /> : null}
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -41,7 +46,7 @@ export default async function AdminDishesPage({
             <p className="mt-2 text-sm text-stone-500">{dish.category.name} • {formatCurrency(Number(dish.price))}</p>
             <p className="mt-2 text-sm leading-6 text-stone-600">{dish.description}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button asChild variant="outline"><a href={`/admin/dishes?edit=${dish.id}`}>Editar</a></Button>
+              <Button asChild variant="outline"><Link href={`/admin/dishes?edit=${dish.id}`}>Editar</Link></Button>
               <Button asChild variant="outline"><a href={url} target="_blank" rel="noreferrer">Abrir página</a></Button>
               <form action={deleteDishAction.bind(null, dish.id)}>
                 <Button variant="danger">Excluir</Button>
@@ -77,7 +82,13 @@ export default async function AdminDishesPage({
             sortOrder: editing.sortOrder
           } : undefined}
         />
-        <div className="grid gap-4">{dishCards}</div>
+        <div className="grid gap-4">
+          {dishCards.length ? dishCards : (
+            <Card className="p-6 text-sm text-stone-500">
+              Nenhum prato cadastrado ainda. Crie o primeiro prato e valide seu QR individual.
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
