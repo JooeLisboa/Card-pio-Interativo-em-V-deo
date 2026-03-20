@@ -4,11 +4,11 @@ import { CategoryForm } from "@/components/admin/category-form";
 import { SectionHeader } from "@/components/admin/section-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAdminDashboardData } from "@/lib/data";
 import { requireAdmin } from "@/lib/auth/session";
+import { getAdminDashboardData } from "@/lib/data";
 
 export default async function AdminCategoriesPage({
-  searchParams
+  searchParams,
 }: {
   searchParams: Promise<{ edit?: string }>;
 }) {
@@ -19,9 +19,25 @@ export default async function AdminCategoriesPage({
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="Categorias" description="Organize o cardápio por seções com ordenação e slugs amigáveis." />
-      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-        <CategoryForm defaultValues={editing ? { id: editing.id, name: editing.name, slug: editing.slug, sortOrder: editing.sortOrder } : undefined} />
+      <SectionHeader
+        title="Categorias"
+        description="Organize o cardápio por seções com ordenação e slugs amigáveis."
+      />
+      <div className="grid gap-6 2xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)] 2xl:items-start">
+        <div className="2xl:sticky 2xl:top-6">
+          <CategoryForm
+            defaultValues={
+              editing
+                ? {
+                    id: editing.id,
+                    name: editing.name,
+                    slug: editing.slug,
+                    sortOrder: editing.sortOrder,
+                  }
+                : undefined
+            }
+          />
+        </div>
         <Card className="p-6">
           {data.categories.length ? (
             <div className="overflow-x-auto">
