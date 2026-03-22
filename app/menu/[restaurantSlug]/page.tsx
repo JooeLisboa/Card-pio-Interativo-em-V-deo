@@ -33,7 +33,10 @@ export default async function MenuPage({
     .map((category) => ({
       ...category,
       dishes: category.dishes.filter(
-        (dish) => !query || dish.name.toLowerCase().includes(query) || dish.description.toLowerCase().includes(query)
+        (dish) =>
+          !query ||
+          dish.name.toLowerCase().includes(query) ||
+          dish.description.toLowerCase().includes(query)
       )
     }))
     .filter((category) => category.dishes.length > 0);
@@ -46,8 +49,11 @@ export default async function MenuPage({
 
   return (
     <main
-      className="container-shell py-5 sm:py-8"
-      style={{ ["--primary" as string]: restaurant.primaryColor, ["--secondary" as string]: restaurant.secondaryColor } as CSSProperties}
+      className="container-shell py-4 sm:py-6"
+      style={{
+        ["--primary" as string]: restaurant.primaryColor,
+        ["--secondary" as string]: restaurant.secondaryColor
+      } as CSSProperties}
     >
       <MenuHeader
         name={restaurant.name}
@@ -57,13 +63,20 @@ export default async function MenuPage({
         totalDishes={restaurant.categories.reduce((acc, category) => acc + category.dishes.length, 0)}
         tableLabel={tableContext ? `Mesa ${tableContext.number}` : undefined}
       />
-      <section className="mt-5 surface p-4 sm:p-5">
+
+      <section className="mt-4 surface p-4 sm:p-5">
         <form className="relative" action={buildMenuUrl({ restaurantSlug: restaurant.slug })}>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-          <Input name="q" defaultValue={q} placeholder="Buscar prato, ingrediente ou categoria" className="min-h-12 pl-10" />
+          <Input
+            name="q"
+            defaultValue={q}
+            placeholder="Buscar prato, ingrediente ou categoria"
+            className="min-h-12 pl-10"
+          />
           {canonicalTableParam ? <input type="hidden" name="table" value={canonicalTableParam} /> : null}
         </form>
       </section>
+
       <section id="categorias" className="mt-6 space-y-8">
         {categories.length ? (
           categories.map((category) => (
@@ -77,7 +90,12 @@ export default async function MenuPage({
               </div>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {category.dishes.map((dish) => (
-                  <DishCard key={dish.id} restaurantSlug={restaurant.slug} tableCode={canonicalTableParam} dish={dish} />
+                  <DishCard
+                    key={dish.id}
+                    restaurantSlug={restaurant.slug}
+                    tableCode={canonicalTableParam}
+                    dish={dish}
+                  />
                 ))}
               </div>
             </div>

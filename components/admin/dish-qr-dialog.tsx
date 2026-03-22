@@ -11,14 +11,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog";
 
 export function DishQrDialog({
   dishName,
   dishSlug,
   dishUrl,
-  qrCode,
+  qrCode
 }: {
   dishName: string;
   dishSlug: string;
@@ -28,8 +28,8 @@ export function DishQrDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="min-h-11 flex-1 sm:flex-none">
-          <QrCode className="mr-2 h-4 w-4" />
+        <Button variant="secondary" className="min-h-11 w-full justify-center gap-2">
+          <QrCode className="h-4 w-4" />
           Ver QR
         </Button>
       </DialogTrigger>
@@ -56,12 +56,8 @@ export function DishQrDialog({
           <div className="mt-4 space-y-2">
             <p className="text-sm font-semibold text-stone-900">{dishName}</p>
             <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.18em] text-stone-400">
-                URL pública
-              </p>
-              <p className="mt-2 break-all text-sm leading-6 text-stone-600">
-                {dishUrl}
-              </p>
+              <p className="text-xs uppercase tracking-[0.18em] text-stone-400">URL pública</p>
+              <p className="mt-2 break-all text-sm leading-6 text-stone-600">{dishUrl}</p>
             </div>
           </div>
         </div>

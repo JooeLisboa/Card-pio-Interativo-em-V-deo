@@ -2,12 +2,12 @@ import { PlayCircle } from "lucide-react";
 
 export function YoutubeEmbed({ videoId }: { videoId: string }) {
   return (
-    <div className="surface overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-[var(--border)] px-5 py-4 text-sm font-semibold text-stone-700">
-        <PlayCircle className="h-4 w-4 text-[var(--primary)]" />
+    <div className="overflow-hidden rounded-[32px] border border-[var(--border)] bg-stone-950 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.55)]">
+      <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-semibold text-white/90">
+        <PlayCircle className="h-4 w-4 text-[var(--secondary)]" />
         Vídeo do prato
       </div>
-      <div className="aspect-video w-full bg-stone-950/5">
+      <div className="aspect-[16/11] w-full bg-stone-950 sm:aspect-video">
         <iframe
           className="h-full w-full"
           src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`}
