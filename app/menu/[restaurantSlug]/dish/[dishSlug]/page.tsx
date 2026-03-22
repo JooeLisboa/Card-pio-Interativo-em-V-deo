@@ -9,7 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MediaImage } from "@/components/ui/media-image";
 import { getDishBySlug, resolveTableContext } from "@/lib/data";
-import { buildMenuUrl, buildWhatsAppUrl, extractYoutubeVideoId, formatCurrency } from "@/lib/utils";
+import {
+  buildMenuUrl,
+  buildWhatsAppUrl,
+  extractYoutubeVideoId,
+  formatCurrency
+} from "@/lib/utils";
 
 export default async function DishPage({
   params,
@@ -56,7 +61,13 @@ export default async function DishPage({
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Button asChild variant="ghost" className="min-h-11 px-0 sm:px-4">
-          <Link href={buildMenuUrl({ restaurantSlug: dish.restaurant.slug, table: canonicalTableParam })} className="flex items-center gap-2">
+          <Link
+            href={buildMenuUrl({
+              restaurantSlug: dish.restaurant.slug,
+              table: canonicalTableParam
+            })}
+            className="flex items-center gap-2"
+          >
             <ArrowLeft className="h-4 w-4" />
             Voltar ao cardápio
           </Link>
