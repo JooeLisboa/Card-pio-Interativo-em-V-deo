@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
-import { categorySchema, dishSchema, settingsSchema, tableSchema } from "@/lib/validations/admin";
+import { removeManagedDishUpload } from "@/lib/uploads";
+import {
+  categorySchema,
+  dishSchema,
+  settingsSchema,
+  tableSchema
+} from "@/lib/validations/admin";
 
 export type ActionMessage = { error?: string; success?: string };
 
@@ -35,7 +41,10 @@ function revalidateAdminPaths(restaurantSlug?: string | null) {
   }
 }
 
-export async function saveCategoryAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
+export async function saveCategoryAction(
+  _prevState: ActionMessage | undefined,
+  formData: FormData
+): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = categorySchema.safeParse({
     id: formData.get("id"),
@@ -95,7 +104,10 @@ export async function deleteCategoryAction(id: string): Promise<ActionMessage> {
   return { success: "Categoria removida com sucesso." };
 }
 
-export async function saveDishAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
+export async function saveDishAction(
+  _prevState: ActionMessage | undefined,
+  formData: FormData
+): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = dishSchema.safeParse({
     id: formData.get("id"),
@@ -142,6 +154,15 @@ export async function saveDishAction(_prevState: ActionMessage | undefined, form
 
   try {
     if (parsed.data.id) {
+      const existingDish = await prisma.dish.findFirst({
+        where: { id: parsed.data.id, restaurantId: user.restaurantId },
+        select: { imageUrl: true }
+      });
+
+      if (!existingDish) {
+        return { error: "Prato não encontrado para este restaurante." };
+      }
+
       const result = await prisma.dish.updateMany({
         where: { id: parsed.data.id, restaurantId: user.restaurantId },
         data
@@ -149,6 +170,10 @@ export async function saveDishAction(_prevState: ActionMessage | undefined, form
 
       if (!result.count) {
         return { error: "Prato não encontrado para este restaurante." };
+      }
+
+      if (existingDish.imageUrl && existingDish.imageUrl !== data.imageUrl) {
+        await removeManagedDishUpload(existingDish.imageUrl);
       }
     } else {
       await prisma.dish.create({ data: { ...data, restaurantId: user.restaurantId } });
@@ -164,6 +189,11 @@ export async function saveDishAction(_prevState: ActionMessage | undefined, form
 export async function deleteDishAction(id: string): Promise<ActionMessage> {
   const user = await requireAdmin();
 
+  const existingDish = await prisma.dish.findFirst({
+    where: { id, restaurantId: user.restaurantId ?? undefined },
+    select: { imageUrl: true }
+  });
+
   const result = await prisma.dish.deleteMany({
     where: { id, restaurantId: user.restaurantId ?? undefined }
   });
@@ -172,11 +202,15 @@ export async function deleteDishAction(id: string): Promise<ActionMessage> {
     return { error: "Prato não encontrado para este restaurante." };
   }
 
+  await removeManagedDishUpload(existingDish?.imageUrl);
   revalidateAdminPaths(user.restaurant?.slug);
   return { success: "Prato removido com sucesso." };
 }
 
-export async function saveTableAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
+export async function saveTableAction(
+  _prevState: ActionMessage | undefined,
+  formData: FormData
+): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = tableSchema.safeParse({
     id: formData.get("id"),
@@ -230,7 +264,10 @@ export async function deleteTableAction(id: string): Promise<ActionMessage> {
   return { success: "Mesa removida com sucesso." };
 }
 
-export async function saveSettingsAction(_prevState: ActionMessage | undefined, formData: FormData): Promise<ActionMessage> {
+export async function saveSettingsAction(
+  _prevState: ActionMessage | undefined,
+  formData: FormData
+): Promise<ActionMessage> {
   const user = await requireAdmin();
   const parsed = settingsSchema.safeParse({
     name: formData.get("name"),
@@ -258,7 +295,7 @@ export async function saveSettingsAction(_prevState: ActionMessage | undefined, 
       revalidatePath(`/menu/${parsed.data.slug}`);
     }
 
-    return { success: "Configurações atualizadas." };
+    return { success: "Configurações salvas com sucesso." };
   } catch (error) {
     return { error: normalizeError(error) };
   }

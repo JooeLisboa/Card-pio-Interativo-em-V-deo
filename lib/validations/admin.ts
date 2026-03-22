@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { hexColorSchema, optionalUrlSchema, slugSchema } from "@/lib/validations/common";
 
+const optionalImageReferenceSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value) => !value || value.startsWith("/") || /^https?:\/\//.test(value),
+    "Informe uma URL válida ou envie uma imagem."
+  )
+  .optional()
+  .transform((value) => value || undefined);
+
 export const loginSchema = z.object({
   email: z.string().trim().email("Informe um e-mail válido."),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.")
@@ -19,7 +29,7 @@ export const dishSchema = z.object({
   slug: slugSchema,
   description: z.string().trim().min(10, "Descreva melhor o prato.").max(500),
   price: z.coerce.number().min(0, "Informe um preço válido."),
-  imageUrl: optionalUrlSchema,
+  imageUrl: optionalImageReferenceSchema,
   youtubeUrl: optionalUrlSchema,
   categoryId: z.string().min(1, "Selecione uma categoria."),
   isAvailable: z.boolean().default(true),
