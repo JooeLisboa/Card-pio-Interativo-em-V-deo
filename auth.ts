@@ -1,12 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { authConfig } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/admin";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
-  pages: { signIn: "/admin/login" },
+  ...authConfig,
   providers: [
     Credentials({
       name: "Credentials",
@@ -45,32 +45,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       }
     })
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.restaurantId = user.restaurantId;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub ?? "";
-        session.user.role = token.role as string | undefined;
-        session.user.restaurantId = token.restaurantId as string | undefined;
-      }
-      return session;
-    },
-    authorized({ auth, request }) {
-      const isLoggedIn = !!auth?.user;
-      const isAdminRoute = request.nextUrl.pathname.startsWith("/admin") && request.nextUrl.pathname !== "/admin/login";
-
-      if (isAdminRoute) {
-        return isLoggedIn;
-      }
-
-      return true;
-    }
-  }
+  ]
 });
