@@ -1,6 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
-import { CircleOff, ExternalLink, PencilLine, Sparkles, Trash2 } from "lucide-react";
+import { CircleOff, ExternalLink, PencilLine, Trash2 } from "lucide-react";
 import { deleteDishAction } from "@/actions/admin";
 import { DishForm } from "@/components/admin/dish-form";
 import { DishQrDialog } from "@/components/admin/dish-qr-dialog";
@@ -8,6 +7,7 @@ import { SectionHeader } from "@/components/admin/section-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MediaImage } from "@/components/ui/media-image";
 import { requireAdmin } from "@/lib/auth/session";
 import { getAdminDashboardData, getQrCodeDataUrl } from "@/lib/data";
 import { buildMenuUrl, formatCurrency } from "@/lib/utils";
@@ -35,22 +35,14 @@ export default async function AdminDishesPage({
       return (
         <Card key={dish.id} className="overflow-hidden p-4 sm:p-5">
           <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)] sm:items-start">
-            <div className="relative overflow-hidden rounded-[28px] bg-stone-100 shadow-sm aspect-[4/3] sm:aspect-square">
-              {dish.imageUrl ? (
-                <Image
-                  src={dish.imageUrl}
-                  alt={dish.name}
-                  fill
-                  className="object-cover"
-                  sizes="(min-width: 640px) 140px, 100vw"
-                />
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-stone-100 to-stone-200 px-4 text-center text-stone-500">
-                  <Sparkles className="h-5 w-5 text-stone-400" />
-                  <span className="text-sm font-semibold">Sem foto do prato</span>
-                </div>
-              )}
-            </div>
+            <MediaImage
+              src={dish.imageUrl}
+              alt={dish.name}
+              wrapperClassName="aspect-[4/3] rounded-[28px] shadow-sm sm:aspect-square"
+              sizes="(min-width: 640px) 140px, 100vw"
+              fallbackTitle="Sem foto do prato"
+              fallbackDescription="O prato continua pronto para ser publicado com preço, QR e status visíveis."
+            />
 
             <div className="min-w-0 space-y-4">
               <div className="space-y-3">

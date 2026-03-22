@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/session";
-import { dishUploadConfig, saveDishImageUpload } from "@/lib/uploads";
+import { dishUploadConfig, uploadDishImage } from "@/lib/uploads";
 
 export async function POST(request: Request) {
   try {
@@ -13,10 +13,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Selecione uma imagem para enviar." }, { status: 400 });
     }
 
-    const imageUrl = await saveDishImageUpload(file);
+    const upload = await uploadDishImage(file);
 
     return NextResponse.json({
-      imageUrl,
+      imageUrl: upload.url,
+      storageDriver: upload.storageDriver,
       maxBytes: dishUploadConfig.maxBytes,
       allowedMimeTypes: Array.from(dishUploadConfig.allowedMimeTypes)
     });

@@ -2,9 +2,9 @@
 
 import type { ChangeEvent } from "react";
 import { useRef, useState } from "react";
-import Image from "next/image";
 import { ImagePlus, LoaderCircle, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MediaImage } from "@/components/ui/media-image";
 import { cn } from "@/lib/utils";
 
 type DishImageUploadProps = {
@@ -73,16 +73,15 @@ export function DishImageUpload({ value, onChange }: DishImageUploadProps) {
       >
         {value ? (
           <>
-            <div className="relative aspect-[4/3] w-full">
-              <Image
-                src={value}
-                alt="Prévia da foto do prato"
-                fill
-                className="object-cover"
-                sizes="(min-width: 1536px) 420px, (min-width: 640px) 50vw, 100vw"
-              />
-            </div>
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/85 via-stone-950/25 to-transparent p-4 text-white">
+            <MediaImage
+              src={value}
+              alt="Prévia da foto do prato"
+              wrapperClassName="aspect-[4/3] w-full"
+              sizes="(min-width: 1536px) 420px, (min-width: 640px) 50vw, 100vw"
+              fallbackTitle="Não foi possível carregar a foto"
+              fallbackDescription="Você pode enviar outra imagem ou manter uma URL externa válida para o prato."
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-stone-950/85 via-stone-950/25 to-transparent p-4 text-white">
               <p className="text-sm font-semibold">Prévia da foto do prato</p>
               <p className="mt-1 text-xs text-white/80">
                 A imagem será usada no card do admin e na página pública do prato.
@@ -102,6 +101,15 @@ export function DishImageUpload({ value, onChange }: DishImageUploadProps) {
             </div>
           </div>
         )}
+
+        {isUploading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/78 backdrop-blur-sm">
+            <div className="flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white shadow-lg">
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+              Enviando foto...
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <input

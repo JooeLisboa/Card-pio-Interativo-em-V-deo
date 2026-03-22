@@ -1,20 +1,13 @@
 import type { CSSProperties } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  CircleOff,
-  MessageCircleMore,
-  PlayCircle,
-  Sparkles,
-  Tag
-} from "lucide-react";
+import { ArrowLeft, CircleOff, MessageCircleMore, Sparkles, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ViewTracker } from "@/components/public/view-tracker";
 import { YoutubeEmbed } from "@/components/public/youtube-embed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MediaImage } from "@/components/ui/media-image";
 import { getDishBySlug, resolveTableContext } from "@/lib/data";
 import {
   buildMenuUrl,
@@ -85,22 +78,21 @@ export default async function DishPage({
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:items-start">
         <section className="space-y-4">
           {videoId ? (
-            <YoutubeEmbed videoId={videoId} />
+            <YoutubeEmbed videoId={videoId} fallbackImageUrl={dish.imageUrl} dishName={dish.name} />
           ) : dish.imageUrl ? (
             <div className="overflow-hidden rounded-[32px] border border-[var(--border)] bg-white shadow-[0_24px_80px_-40px_rgba(0,0,0,0.45)]">
               <div className="flex items-center gap-2 border-b border-[var(--border)] px-5 py-4 text-sm font-semibold text-stone-700">
-                <PlayCircle className="h-4 w-4 text-[var(--primary)]" />
+                <Sparkles className="h-4 w-4 text-[var(--primary)]" />
                 Destaque do prato
               </div>
-              <div className="relative aspect-[4/5] w-full bg-stone-100 sm:aspect-[16/10]">
-                <Image
-                  src={dish.imageUrl}
-                  alt={dish.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1280px) 100vw, 60vw"
-                />
-              </div>
+              <MediaImage
+                src={dish.imageUrl}
+                alt={dish.name}
+                wrapperClassName="aspect-[4/5] w-full sm:aspect-[16/10]"
+                sizes="(max-width: 1280px) 100vw, 60vw"
+                fallbackTitle="Não foi possível carregar a foto"
+                fallbackDescription="A oferta continua pronta para pedido com preço, descrição e CTA logo abaixo."
+              />
             </div>
           ) : (
             <div className="overflow-hidden rounded-[32px] border border-[var(--border)] bg-gradient-to-br from-stone-950 via-stone-900 to-[var(--primary)] p-6 text-white shadow-[0_24px_80px_-40px_rgba(0,0,0,0.55)]">
@@ -135,8 +127,11 @@ export default async function DishPage({
                 </div>
 
                 <div className="space-y-4">
-                  <h1 className="text-3xl font-black tracking-tight text-stone-950 sm:text-5xl">{dish.name}</h1>
-                  <div className="inline-flex w-fit rounded-full bg-stone-950 px-5 py-3 text-2xl font-black text-white">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">Oferta em destaque</p>
+                    <h1 className="text-3xl font-black tracking-tight text-stone-950 sm:text-5xl">{dish.name}</h1>
+                  </div>
+                  <div className="inline-flex w-fit rounded-full bg-stone-950 px-5 py-3 text-2xl font-black text-white shadow-lg">
                     {formatCurrency(Number(dish.price))}
                   </div>
                 </div>
@@ -160,17 +155,15 @@ export default async function DishPage({
                 )}
 
                 <Button asChild variant="outline" className="min-h-12 w-full justify-center gap-2">
-                  <Link
-                    href={buildMenuUrl({
-                      restaurantSlug: dish.restaurant.slug,
-                      table: canonicalTableParam
-                    })}
-                    className="flex items-center justify-center gap-2"
-                  >
+                  <Link href={buildMenuUrl({ restaurantSlug: dish.restaurant.slug, table: canonicalTableParam })} className="flex items-center justify-center gap-2">
                     <Tag className="h-4 w-4" />
                     Ver mais pratos
                   </Link>
                 </Button>
+              </div>
+
+              <div className="rounded-[28px] border border-[var(--border)] bg-stone-50/80 px-4 py-4 text-sm leading-6 text-stone-600">
+                <span className="font-semibold text-stone-900">Dica de conversão:</span> este prato já está estruturado para QR individual, mídia em destaque e pedido rápido pelo WhatsApp.
               </div>
             </div>
           </Card>
