@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowLeft, CircleOff, MessageCircleMore, Sparkles, Tag } from "lucide-react";
+import { ArrowLeft, CircleOff, MessageCircleMore, PlayCircle, Sparkles, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ViewTracker } from "@/components/public/view-tracker";
 import { YoutubeEmbed } from "@/components/public/youtube-embed";
@@ -13,7 +13,8 @@ import {
   buildMenuUrl,
   buildWhatsAppUrl,
   extractYoutubeVideoId,
-  formatCurrency
+  formatCurrency,
+  formatPhoneDisplay
 } from "@/lib/utils";
 
 export default async function DishPage({
@@ -47,7 +48,7 @@ export default async function DishPage({
 
   return (
     <main
-      className="container-shell py-4 sm:py-6"
+      className="container-shell py-4 sm:py-6 lg:py-8"
       style={{
         ["--primary" as string]: dish.restaurant.primaryColor,
         ["--secondary" as string]: dish.restaurant.secondaryColor
@@ -72,7 +73,29 @@ export default async function DishPage({
             Voltar ao cardápio
           </Link>
         </Button>
-        {tableLabel ? <Badge className="bg-emerald-100 text-emerald-800">{tableLabel}</Badge> : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {tableLabel ? <Badge className="bg-emerald-100 text-emerald-800">{tableLabel}</Badge> : null}
+          <Badge className="bg-amber-100 text-amber-800">Página individual do prato</Badge>
+        </div>
+      </div>
+
+      <div className="mb-5 grid gap-3 rounded-[28px] border border-stone-200/80 bg-[linear-gradient(180deg,rgba(255,247,237,0.95),rgba(255,255,255,0.98))] p-4 shadow-sm sm:grid-cols-3 sm:p-5">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-stone-400">Restaurante</p>
+          <p className="mt-2 text-sm font-bold text-stone-900 sm:text-base">{dish.restaurant.name}</p>
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-stone-400">WhatsApp</p>
+          <p className="mt-2 text-sm font-bold text-stone-900 sm:text-base">
+            {formatPhoneDisplay(dish.restaurant.whatsappNumber)}
+          </p>
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-stone-400">Atendimento</p>
+          <p className="mt-2 text-sm font-medium leading-6 text-stone-700">
+            {dish.restaurant.serviceLabel || "Consulte retirada ou entrega diretamente com a equipe."}
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:items-start">
@@ -111,13 +134,14 @@ export default async function DishPage({
             </div>
           )}
 
-          <Card className="overflow-hidden p-5 sm:p-6">
+          <Card className="overflow-hidden border-stone-200/70 p-5 sm:p-6">
             <div className="space-y-5">
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <Badge className="bg-stone-100 text-stone-700">{dish.category.name}</Badge>
+                  {videoId ? <Badge className="bg-amber-100 text-amber-800">Vídeo disponível</Badge> : null}
                   {dish.isAvailable ? <Badge className="bg-emerald-100 text-emerald-700">Disponível agora</Badge> : null}
-                  {dish.isFeatured ? <Badge className="bg-amber-100 text-amber-700">Promoção</Badge> : null}
+                  {dish.isFeatured ? <Badge className="bg-amber-100 text-amber-700">Destaque do cardápio</Badge> : null}
                   {!dish.isAvailable ? (
                     <Badge className="bg-red-100 text-red-700">
                       <CircleOff className="mr-1 h-3.5 w-3.5" />
@@ -155,7 +179,10 @@ export default async function DishPage({
                 )}
 
                 <Button asChild variant="outline" className="min-h-12 w-full justify-center gap-2">
-                  <Link href={buildMenuUrl({ restaurantSlug: dish.restaurant.slug, table: canonicalTableParam })} className="flex items-center justify-center gap-2">
+                  <Link
+                    href={buildMenuUrl({ restaurantSlug: dish.restaurant.slug, table: canonicalTableParam })}
+                    className="flex items-center justify-center gap-2"
+                  >
                     <Tag className="h-4 w-4" />
                     Ver mais pratos
                   </Link>
@@ -163,30 +190,37 @@ export default async function DishPage({
               </div>
 
               <div className="rounded-[28px] border border-[var(--border)] bg-stone-50/80 px-4 py-4 text-sm leading-6 text-stone-600">
-                <span className="font-semibold text-stone-900">Dica de conversão:</span> este prato já está estruturado para QR individual, mídia em destaque e pedido rápido pelo WhatsApp.
+                <span className="font-semibold text-stone-900">Integração com o cardápio:</span> esta página mantém o vídeo em destaque e aprofunda a decisão iniciada no menu vitrine.
               </div>
             </div>
           </Card>
         </section>
 
         <aside className="grid gap-4 xl:sticky xl:top-6">
-          <Card className="p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">Mais desejo de compra</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-stone-950">Uma landing page feita para vender o prato.</h2>
+          <Card className="border-stone-200/70 p-5 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">Continuidade da navegação</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-stone-950">Do menu elegante para a oferta completa do prato.</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-stone-600">
-              <li>• Mídia destacada acima da dobra para chamar atenção no celular.</li>
-              <li>• Preço e CTA visíveis logo após o conteúdo principal.</li>
-              <li>• Status de disponibilidade e promoção com leitura instantânea.</li>
+              <li>• Contexto visual alinhado ao novo cardápio público.</li>
+              <li>• Preço, descrição e CTA em leitura imediata no celular.</li>
+              <li>• Vídeo ou imagem em destaque antes da decisão de pedido.</li>
             </ul>
           </Card>
 
-          <Card className="p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">Pronto para QR individual</p>
+          <Card className="border-stone-200/70 p-5 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">Pronto para conversão</p>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-stone-600">
               <li>• Link direto para WhatsApp com mensagem pronta e referência da mesa.</li>
               <li>• Visualização contabilizada uma única vez por sessão do navegador.</li>
-              <li>• Página otimizada para mostrar vídeo, foto e oferta sem ruído visual.</li>
+              <li>• Estrutura preparada para QR individual e divulgação do prato.</li>
             </ul>
+            <div className="mt-5 rounded-[24px] bg-stone-950 px-4 py-4 text-sm leading-6 text-white/85">
+              <div className="flex items-center gap-2 font-semibold text-white">
+                <PlayCircle className="h-4 w-4 text-amber-300" />
+                Experiência premium do item
+              </div>
+              <p className="mt-2">Use esta página como destino de campanhas, QR da mesa e links diretos dos pratos mais estratégicos.</p>
+            </div>
           </Card>
         </aside>
       </div>

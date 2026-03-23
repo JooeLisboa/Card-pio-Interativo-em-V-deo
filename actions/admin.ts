@@ -276,7 +276,9 @@ export async function saveSettingsAction(
     logoUrl: formData.get("logoUrl"),
     primaryColor: formData.get("primaryColor"),
     secondaryColor: formData.get("secondaryColor"),
-    whatsappNumber: formData.get("whatsappNumber")
+    phoneNumber: formData.get("phoneNumber"),
+    whatsappNumber: formData.get("whatsappNumber"),
+    serviceLabel: formData.get("serviceLabel")
   });
 
   if (!parsed.success || !user.restaurantId) {

@@ -9,7 +9,7 @@ export default async function AdminSettingsPage() {
   if (!user.restaurant) {
     return (
       <div className="space-y-6">
-        <SectionHeader title="Configurações do restaurante" description="Defina identidade visual, slug público, WhatsApp e dados institucionais." />
+        <SectionHeader title="Configurações do restaurante" description="Defina identidade visual, contatos públicos, texto de entrega/retirada e dados institucionais." />
         <Card className="p-6 text-sm text-stone-500">Nenhum restaurante vinculado ao usuário autenticado.</Card>
       </div>
     );
@@ -17,7 +17,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="Configurações do restaurante" description="Defina identidade visual, slug público, WhatsApp e dados institucionais." />
+      <SectionHeader title="Configurações do restaurante" description="Defina identidade visual, contatos públicos, texto de entrega/retirada e dados institucionais." />
       <SettingsForm
         defaultValues={{
           name: user.restaurant.name,
@@ -26,7 +26,9 @@ export default async function AdminSettingsPage() {
           logoUrl: user.restaurant.logoUrl ?? "",
           primaryColor: user.restaurant.primaryColor,
           secondaryColor: user.restaurant.secondaryColor,
-          whatsappNumber: user.restaurant.whatsappNumber
+          phoneNumber: user.restaurant.phoneNumber ?? "",
+          whatsappNumber: user.restaurant.whatsappNumber,
+          serviceLabel: user.restaurant.serviceLabel
         }}
       />
     </div>

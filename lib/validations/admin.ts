@@ -11,6 +11,18 @@ const optionalImageReferenceSchema = z
   .optional()
   .transform((value) => value || undefined);
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^\+?[0-9()\-\s]{10,20}$/, "Informe um número de telefone válido.");
+
+const optionalPhoneSchema = z
+  .string()
+  .trim()
+  .refine((value) => !value || /^\+?[0-9()\-\s]{10,20}$/.test(value), "Informe um número de telefone válido.")
+  .optional()
+  .transform((value) => value || undefined);
+
 export const loginSchema = z.object({
   email: z.string().trim().email("Informe um e-mail válido."),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.")
@@ -50,8 +62,7 @@ export const settingsSchema = z.object({
   logoUrl: optionalUrlSchema,
   primaryColor: hexColorSchema,
   secondaryColor: hexColorSchema,
-  whatsappNumber: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9()\-\s]{10,20}$/, "Informe um número de WhatsApp válido.")
+  phoneNumber: optionalPhoneSchema,
+  whatsappNumber: phoneSchema,
+  serviceLabel: z.string().trim().min(8).max(120)
 });

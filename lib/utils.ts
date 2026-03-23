@@ -27,6 +27,28 @@ export function sanitizeWhatsAppNumber(value: string) {
   return value.replace(/\D/g, "");
 }
 
+export function formatPhoneDisplay(value?: string | null) {
+  const digits = sanitizeWhatsAppNumber(value ?? "");
+
+  if (!digits) {
+    return "Não informado";
+  }
+
+  const localDigits = digits.startsWith("55") && (digits.length === 12 || digits.length === 13)
+    ? digits.slice(2)
+    : digits;
+
+  if (localDigits.length === 11) {
+    return `(${localDigits.slice(0, 2)}) ${localDigits.slice(2, 7)}-${localDigits.slice(7)}`;
+  }
+
+  if (localDigits.length === 10) {
+    return `(${localDigits.slice(0, 2)}) ${localDigits.slice(2, 6)}-${localDigits.slice(6)}`;
+  }
+
+  return value?.trim() || digits;
+}
+
 function normalizeYoutubeId(candidate?: string | null) {
   if (!candidate) return null;
 
