@@ -20,7 +20,9 @@ model Restaurant {
   logoUrl         String?
   primaryColor    String    @default("#7C3F12")
   secondaryColor  String    @default("#F59E0B")
+  phoneNumber     String?
   whatsappNumber  String
+  serviceLabel    String    @default("Entrega e retirada disponíveis")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   categories      Category[]

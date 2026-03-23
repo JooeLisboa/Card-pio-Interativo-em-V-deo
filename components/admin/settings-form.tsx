@@ -18,7 +18,9 @@ type FormValues = {
   logoUrl?: string;
   primaryColor: string;
   secondaryColor: string;
+  phoneNumber?: string;
   whatsappNumber: string;
+  serviceLabel: string;
 };
 
 export function SettingsForm({ defaultValues }: { defaultValues: FormValues }) {
@@ -69,7 +71,7 @@ export function SettingsForm({ defaultValues }: { defaultValues: FormValues }) {
         <Input id="logoUrl" placeholder="https://..." {...register("logoUrl")} />
         {errors.logoUrl ? <p className="mt-1 text-xs text-red-600">{errors.logoUrl.message}</p> : null}
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div>
           <Label htmlFor="primaryColor">Cor primária</Label>
           <Input id="primaryColor" placeholder="#7C3F12" {...register("primaryColor")} />
@@ -81,10 +83,20 @@ export function SettingsForm({ defaultValues }: { defaultValues: FormValues }) {
           {errors.secondaryColor ? <p className="mt-1 text-xs text-red-600">{errors.secondaryColor.message}</p> : null}
         </div>
         <div>
+          <Label htmlFor="phoneNumber">Telefone</Label>
+          <Input id="phoneNumber" placeholder="(11) 3333-4444" {...register("phoneNumber")} />
+          {errors.phoneNumber ? <p className="mt-1 text-xs text-red-600">{errors.phoneNumber.message}</p> : null}
+        </div>
+        <div>
           <Label htmlFor="whatsappNumber">WhatsApp</Label>
           <Input id="whatsappNumber" placeholder="5511999999999" {...register("whatsappNumber")} />
           {errors.whatsappNumber ? <p className="mt-1 text-xs text-red-600">{errors.whatsappNumber.message}</p> : null}
         </div>
+      </div>
+      <div>
+        <Label htmlFor="serviceLabel">Texto curto de entrega / retirada</Label>
+        <Input id="serviceLabel" placeholder="Entrega e retirada disponíveis até 22h" {...register("serviceLabel")} />
+        {errors.serviceLabel ? <p className="mt-1 text-xs text-red-600">{errors.serviceLabel.message}</p> : null}
       </div>
       <Button type="submit" disabled={isPending} className="min-h-12">
         {isPending ? "Salvando..." : "Salvar configurações"}

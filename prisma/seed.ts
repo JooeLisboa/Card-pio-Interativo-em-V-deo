@@ -11,7 +11,9 @@ async function main() {
     update: {
       name: "Sabor da Casa",
       description: "Cardápio digital com vídeos dos pratos",
+      phoneNumber: "1433224455",
       whatsappNumber: "5514999999999",
+      serviceLabel: "Retirada no balcão e delivery com pedido pelo WhatsApp",
       logoUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=200&q=80",
       primaryColor: "#7C3F12",
       secondaryColor: "#F59E0B"
@@ -20,7 +22,9 @@ async function main() {
       name: "Sabor da Casa",
       slug: "sabor-da-casa",
       description: "Cardápio digital com vídeos dos pratos",
+      phoneNumber: "1433224455",
       whatsappNumber: "5514999999999",
+      serviceLabel: "Retirada no balcão e delivery com pedido pelo WhatsApp",
       logoUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=200&q=80",
       primaryColor: "#7C3F12",
       secondaryColor: "#F59E0B"
